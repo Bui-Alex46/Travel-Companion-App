@@ -1,12 +1,12 @@
 import sqlite3
 
 
-conn = sqlite3.connect('travel_companion_db')
+conn = sqlite3.connect('travel_companion.db')
 
 c = conn.cursor()
 
 
-statement = '''CREATE TABLE favorites (
+statement = '''CREATE TABLE IF NOT EXISTS favorites (
             name        TEXT    NOT NULL,
             address     TEXT    NOT NULL
     );'''
