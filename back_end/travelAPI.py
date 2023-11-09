@@ -23,7 +23,7 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 @app.route('/favorite', methods=['POST'])
-def add_place():
+def add_favorite():
     data = request.get_json()
     name = data.get('name')
     address = data.get('address')
@@ -45,6 +45,19 @@ def add_place():
         return jsonify({'error': str(e)}), 500
 
     return jsonify({'message': 'Place added successfully!'}), 201
+
+@app.route('/favorite', methods=['GET'])
+def get_favorite():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT name, address FROM favorites")
+    favorites = cursor.fetchall()
+    return jsonify(favorites), 200
+
+
+
+
+
 
 
 # @app.route('/favorite', methods = ['GET', 'POST', 'DELETE'])
