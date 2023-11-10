@@ -54,9 +54,22 @@ def get_favorite():
     favorites = cursor.fetchall()
     return jsonify(favorites), 200
 
+@app.route('/delete', methods=['DELETE'])
+def delete_favorite():
+    db = get_db()
+    cursor = db.cursor()
+    name = request.form['name']
 
+    try:
+        query = 'DELETE FROM favorites WHERE name = %s'
+        cursor.execute(query, name)
+        cursor.commit()
+    
+    except sqlite3.Error as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
 
-
+    return jsonify({'message': 'Place deleted successfully!'}), 201
 
 
 
