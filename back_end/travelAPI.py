@@ -24,9 +24,9 @@ def hello_world():
 
 @app.route('/favorite', methods=['POST'])
 def add_favorite():
-    data = request.get_json()
-    name = data.get('name')
-    address = data.get('address')
+    #data = request.get_json()
+    name = request.form.get('name')
+    address = request.form.get('address')
 
     # Validate input
     if not name or not address:
@@ -61,9 +61,9 @@ def delete_favorite():
     name = request.form['name']
 
     try:
-        query = 'DELETE FROM favorites WHERE name = %s'
-        cursor.execute(query, name)
-        cursor.commit()
+        query = 'DELETE FROM favorites WHERE name = (?)'
+        cursor.execute(query, (name,))
+        db.commit()
     
     except sqlite3.Error as e:
         db.rollback()
