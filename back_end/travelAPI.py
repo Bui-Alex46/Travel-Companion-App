@@ -22,23 +22,66 @@ def close_connection(exception):
 def hello_world():
     return "<p>Hello, World!</p>"
 
-@app.route('/favorite', methods=['POST'])
+# @app.route("/address", methods=['POST'])
+# def add_address():
+#     street = request.form.get("street")
+#     city = request.form.get("city")
+#     state = request.form.get("state")
+#     zip = request.form.get("zip")
+    
+#       # Validate input
+#     if not street or not city or not state or not zip:
+#         return jsonify({'error': 'Missing name or address'}), 400
+    
+#     db = get_db()
+#     cursor = db.cursor()
+    
+#       # Insert into address
+#     try:
+#         cursor.execute('INSERT INTO address (street, city, state, zip) VALUES (?, ?, ?, ?)', (street, city, state, zip))
+#         db.commit()
+#     except sqlite3.Error as e:
+#         db.rollback()
+#         return jsonify({'error': str(e)}), 500
+    
+#     return jsonify({'message': 'Place added successfully!'}), 201
+    
+
+@app.route("/favorite", methods=['POST'])
 def add_favorite():
     #data = request.get_json()
-    name = request.form.get('name')
-    address = request.form.get('address')
+    name = request.form.get("name")
+    street = request.form.get("street")
+    city = request.form.get("city")
+    state = request.form.get("state")
+    zip = request.form.get("zip")
+    
 
     # Validate input
-    if not name or not address:
+    if not name or not street or not city or not state or not zip:
         return jsonify({'error': 'Missing name or address'}), 400
+
+
 
     db = get_db()
     cursor = db.cursor()
     
-    
-    # Insert into database
+   
+    # Insert into address
     try:
-        cursor.execute('INSERT INTO favorites (name, address) VALUES (?, ?)', (name, address))
+        cursor.execute('INSERT INTO address (street, city, state, zip) VALUES (?, ?, ?, ?)', (street, city, state, zip))
+        db.commit()
+    except sqlite3.Error as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+    # Get the address id we just create
+    cursor.execute('''SELECT id FROM address WHERE street= (?) AND city = (?) AND state = (?) AND zip = (?)''', (street, city, state, zip))
+    address_id = cursor.fetchone()[0]
+    
+    # Insert into favorite
+    try:
+        cursor.execute('INSERT INTO favorites (name, addressID) VALUES (?, ?)', (name, address_id))
         db.commit()
     except sqlite3.Error as e:
         db.rollback()
@@ -50,7 +93,7 @@ def add_favorite():
 def get_favorite():
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT name, address FROM favorites")
+    cursor.execute("SELECT name, street, city, state, zip FROM favorites, address WHERE favorites.addressID = address.id")
     favorites = cursor.fetchall()
     return jsonify(favorites), 200
 

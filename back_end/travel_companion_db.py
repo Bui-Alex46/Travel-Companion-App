@@ -19,7 +19,8 @@ create_address = '''CREATE TABLE IF NOT EXISTS address (
             id          INTEGER     NOT NULL PRIMARY KEY,
             street      TEXT        NOT NULL,
             city        TEXT        NOT NULL,
-            state       TEXT        NOT NULL 
+            state       TEXT        NOT NULL,
+            zip         INTEGER     NOT NULL 
     );'''
 
 
