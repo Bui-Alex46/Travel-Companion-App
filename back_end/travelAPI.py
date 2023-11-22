@@ -1,7 +1,17 @@
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify, g, session ,render_template
+from datetime import timedelta
+import datetime
 import sqlite3
+from functools import wraps
+from email_validator import validate_email, EmailNotValidError
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'Sa_sa'
+
+app.permanent_session_lifetime = timedelta(minutes=10)
+
+
+
 
 DATABASE = 'travel_companion.db'
 
@@ -17,6 +27,97 @@ def close_connection(exception):
     if db is not None:
         db.close()
         
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = session.get('Authorization') #https://127.0.0.1:5000/route?token=afhftdchbiuig
+       
+        if not token:
+            return jsonify({'message' : 'Token is missing!'}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            print(data)
+        except Exception as e:
+            print(str(e))
+            return jsonify({'message' : 'Token is invalid !!'}), 401
+
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    first = request.form.get("first_name")
+    last = request.form.get("last_name")
+    user = request.form.get("user_name")
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    if len(password) < 4 or len(password) > 255:
+        msg = 'Password needs to be between 4 and 255 characters long.'
+        return jsonify({'error': msg})
+        # return render_template('signup.html', msg = msg)
+    
+    #username must be between 4 and 255 
+    if len(user) < 4 or len(user) > 255:
+         msg= 'Username needs to be between 4 and 255 characters long.'
+         return jsonify({'error':msg})
+         #return render_template('signup.html', msg = msg)
+    
+    try:
+        # Check that the email address is valid.
+        validation = validate_email(email)
+
+        # Take the normalized form of the email address
+        # for all logic beyond this point (especially
+        # before going to a database query where equality
+        # may not take into account Unicode normalization).  
+        email = validation.email
+    except EmailNotValidError as e:
+        # Email is not valid.
+        # The exception message is human-readable.
+        return jsonify({'error': str(e)}), 500
+
+    #username cannot include whitespace
+    if any (char.isspace() for char in user):
+         msg = 'Username cannot have spaces in it.'
+         return jsonify({'error':msg})
+
+         #return render_template('signup.html', msg = msg)
+    
+    #password cannot include whitespace
+    if any (char.isspace() for char in password):
+         msg = 'Password cannot have spaces in it.'
+         return jsonify({'error':msg})
+
+         #return render_template('signup.html', msg = msg)    
+
+
+    db = get_db()
+    cursor = db.cursor()
+
+    getCountByUsername = '''SELECT COUNT(*) FROM account WHERE username = %s'''
+    cursor.execute(getCountByUsername,[user])
+    countOfUsername = cursor.fetchone()
+
+    if countOfUsername[0] != 0 :
+         msg = 'Username already exists.'
+         return jsonify({'error':msg})
+
+
+    query = '''INSERT INTO account (first_name, last_name, user_name, email, password) VALUES (?,?,?,?,?)'''
+    
+    try:
+        cursor.execute(query,(first,last,user,email,password))
+        db.commit()
+    except sqlite3.Error as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+    return jsonify({'Account Successfully Created'}), 201
+
 
 @app.route("/")
 def hello_world():
