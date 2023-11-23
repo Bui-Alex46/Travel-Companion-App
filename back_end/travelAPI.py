@@ -4,6 +4,7 @@ import datetime
 import sqlite3
 from functools import wraps
 from email_validator import validate_email, EmailNotValidError
+import jwt
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Sa_sa'
@@ -45,6 +46,63 @@ def token_required(f):
 
         return f(*args, **kwargs)
     return decorated
+
+@app.route("/login", methods=["POST"])
+def login():
+
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        msg = ''
+
+        username = request.form.get('user_name')
+        password = request.form.get('password')
+        
+
+        # COUNT() means that it returns the number of rows that matches a specified criterion
+        getCountByUsernameAndPassword = '''SELECT COUNT(*) FROM account WHERE user_name = ? AND password = ?'''
+        cursor.execute(getCountByUsernameAndPassword, [username, password])
+        
+        #print("Did execute")
+        
+        countOfUsernameAndPassword = cursor.fetchone()
+
+        #print("Did fetchone")
+
+        if countOfUsernameAndPassword[0] == 0:
+            #print("count to 0")
+
+            msg = 'Account does not exist.'
+            return jsonify(msg=msg)
+        #print("count is 1")
+
+        #token is like a hall pass that only works for a limited time
+        token = jwt.encode({'user': username, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10)}, app.config['SECRET_KEY'], algorithm="HS256")
+
+        #token = jwt.encode({a:"b"}, app.config['SECRET_KEY'], algorithm="HS256")
+        
+
+
+        session['Authorization'] = token
+        
+        # sessions carry data over the website
+        session['loggedin'] = True
+
+        session['username'] = username
+        
+        msg = 'Authentication successful'
+        return jsonify(msg)
+    
+    except Exception as e:
+        
+        #make sure to include this when developing an api or web server when wanting to check for errors without users
+        #seeing it
+        #print(str(e))
+        #msg = 'Account does not exist.'
+        
+        msg = str(e)
+
+        return jsonify(msg=msg)
 
 
 @app.route("/signup", methods=["POST"])
