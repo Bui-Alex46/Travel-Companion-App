@@ -11,13 +11,14 @@ create_favorites = '''CREATE TABLE IF NOT EXISTS favorites (
             addressID   INTEGER     NOT NULL UNIQUE,
             userID      INTEGER     NOT NULL UNIQUE,
             FOREIGN KEY(addressID) REFERENCES address(id) ON DELETE CASCADE,
-            FOREIGN KEY(userID) REFERENCES account(accountId)  ON DELETE CASCADE
+            FOREIGN KEY(userID) REFERENCES account(id)  ON DELETE CASCADE
     );'''
 
 drop_favorites = '''DROP TABLE favorites;'''
-drop_address = '''DROP TABLE address'''
+drop_address = '''DROP TABLE address;'''
+drop_account = '''DROP TABLE account;'''
 
-create_info = '''CREATE TABLE account (accountId INTEGER PRIMARY KEY AUTOINCREMENT, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL UNIQUE, email VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL);
+create_account = '''CREATE TABLE account (id INTEGER PRIMARY KEY AUTOINCREMENT, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL UNIQUE, email VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL);
 '''
 
 create_address = '''CREATE TABLE IF NOT EXISTS address (
@@ -31,7 +32,7 @@ create_address = '''CREATE TABLE IF NOT EXISTS address (
 
 
 
-c.execute(create_address)
+c.execute(create_favorites)
 
 conn.commit()
 

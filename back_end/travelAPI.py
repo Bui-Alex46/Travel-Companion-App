@@ -59,18 +59,20 @@ def login():
         password = request.form.get('password')
         
 
-        # COUNT() means that it returns the number of rows that matches a specified criterion
-        getCountByUsernameAndPassword = '''SELECT COUNT(*) FROM account WHERE user_name = ? AND password = ?'''
-        cursor.execute(getCountByUsernameAndPassword, [username, password])
+        # # COUNT() means that it returns the number of rows that matches a specified criterion
+        # getCountByUsernameAndPassword = '''SELECT COUNT(*) FROM account WHERE user_name = ? AND password = ?'''
+        # cursor.execute(getCountByUsernameAndPassword, [username, password])
+        
+        getUserIdByUsernameAndPassword = '''SELECT id FROM account WHERE user_name = ? AND password = ?'''
+        cursor.execute(getUserIdByUsernameAndPassword, [username, password])
         
         #print("Did execute")
         
-        countOfUsernameAndPassword = cursor.fetchone()
+        user_id = cursor.fetchone()
 
         #print("Did fetchone")
 
-        if countOfUsernameAndPassword[0] == 0:
-            #print("count to 0")
+        if not user_id:
 
             msg = 'Account does not exist.'
             return jsonify(msg=msg)
@@ -89,6 +91,8 @@ def login():
         session['loggedin'] = True
 
         session['username'] = username
+        
+        session['userID'] = user_id
         
         msg = 'Authentication successful'
         return jsonify(msg)
@@ -156,7 +160,7 @@ def signup():
     db = get_db()
     cursor = db.cursor()
 
-    getCountByUsername = '''SELECT COUNT(*) FROM account WHERE username = %s'''
+    getCountByUsername = '''SELECT COUNT(*) FROM account WHERE user_name = ?'''
     cursor.execute(getCountByUsername,[user])
     countOfUsername = cursor.fetchone()
 
@@ -215,9 +219,19 @@ def add_favorite():
     state = request.form.get("state")
     zip = request.form.get("zip")
     
+    
+    
     # Get login user id
-    if current_user.is_authenticated():
-        g.user = current_user.get_id()
+    if 'username' in session:
+        username = session['username']
+        
+        try:
+            # Get user if by username from db
+            user_id = cursor.execute('SELECT id FROM account WHERE username = ?', (username))
+            db.commit()
+        except sqlite3.Error as e:
+            return jsonify({'message': 'user not found'}), 404
+    
     
 
     # Validate input
@@ -244,7 +258,7 @@ def add_favorite():
     # Insert into favorite
     try:
         # add UserId in the favorite tabe
-        cursor.execute('INSERT INTO favorites (name, addressID, userID) VALUES (?, ?, ?)', (name, address_id, userID))
+        cursor.execute('INSERT INTO favorites (name, addressID, userID) VALUES (?, ?, ?)', (name, address_id, user_id))
         db.commit()
     except sqlite3.Error as e:
         db.rollback()
@@ -256,8 +270,10 @@ def add_favorite():
 def get_favorite():
     db = get_db()
     cursor = db.cursor()
-    # Add user id in the filter. Get favorite by userID
-    cursor.execute("SELECT name, street, city, state, zip FROM favorites, address WHERE favorites.addressID = address.id")
+    
+    user_id = session['userID']
+    
+    cursor.execute("SELECT name, street, city, state, zip FROM favorites, address WHERE userID = ? AND favorites.addressID = address.id", (user_id))
     favorites = cursor.fetchall()
     return jsonify(favorites), 200
 
