@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify, g, session ,render_template
 from datetime import timedelta
-import datetime
-import sqlite3
 from functools import wraps
 from email_validator import validate_email, EmailNotValidError
+import datetime
+import sqlite3
 import jwt
 
 app = Flask(__name__)
@@ -39,7 +39,7 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            print(data)
+            print(data) # What's data?
         except Exception as e:
             print(str(e))
             return jsonify({'message' : 'Token is invalid !!'}), 401
@@ -215,11 +215,14 @@ def add_favorite():
     state = request.form.get("state")
     zip = request.form.get("zip")
     
+    # Get login user id
+    if current_user.is_authenticated():
+        g.user = current_user.get_id()
+    
 
     # Validate input
     if not name or not street or not city or not state or not zip:
         return jsonify({'error': 'Missing name or address'}), 400
-
 
 
     db = get_db()
@@ -240,7 +243,8 @@ def add_favorite():
     
     # Insert into favorite
     try:
-        cursor.execute('INSERT INTO favorites (name, addressID) VALUES (?, ?)', (name, address_id))
+        # add UserId in the favorite tabe
+        cursor.execute('INSERT INTO favorites (name, addressID, userID) VALUES (?, ?, ?)', (name, address_id, userID))
         db.commit()
     except sqlite3.Error as e:
         db.rollback()
@@ -252,6 +256,7 @@ def add_favorite():
 def get_favorite():
     db = get_db()
     cursor = db.cursor()
+    # Add user id in the filter. Get favorite by userID
     cursor.execute("SELECT name, street, city, state, zip FROM favorites, address WHERE favorites.addressID = address.id")
     favorites = cursor.fetchall()
     return jsonify(favorites), 200
@@ -261,6 +266,7 @@ def delete_favorite():
     db = get_db()
     cursor = db.cursor()
     name = request.form['name']
+    # Delete favorite by UserId
 
     try:
         query = 'DELETE FROM favorites WHERE name = (?)'
