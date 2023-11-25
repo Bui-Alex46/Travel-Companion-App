@@ -5,12 +5,13 @@ import SearchIcon from '@material-ui/icons/Search';
 import SignInModal from '../SignInModal'
 import SignUpModal from '../SignUpModal'
 import useStyles from './styles';
+import Favorites from '../Favorites';
 const Heaeder = () => {
     const classes = useStyles();
     const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-    
-
+    const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
+   
     const openSignUpModal = () => {
         setIsSignUpModalOpen(true);
       }
@@ -23,6 +24,14 @@ const Heaeder = () => {
       const closeSignInModal = () => {
         setIsSignInModalOpen(false);
       }
+
+      const openFavoritesModal = () => {
+        setIsFavoritesModalOpen(true);
+      };
+    
+      const closeFavoritesModal = () => {
+        setIsFavoritesModalOpen(false);
+      };
     return(
         <AppBar position = "static">
             
@@ -40,8 +49,11 @@ const Heaeder = () => {
                      Sign Up
                 </Button>
                 <SignUpModal open={isSignUpModalOpen} onClose={closeSignUpModal} />
-
-
+                
+                
+                <Favorites open={isFavoritesModalOpen} onClose={closeFavoritesModal} />
+                
+                
                 <Box display = "flex">
                     <Typography variant = "h6" className = {classes.title}>
                         Explore New places

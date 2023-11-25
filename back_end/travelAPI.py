@@ -4,8 +4,9 @@ import datetime
 import sqlite3
 from functools import wraps
 from email_validator import validate_email, EmailNotValidError
-
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
 app.config['SECRET_KEY'] = 'Sa_sa'
 
 app.permanent_session_lifetime = timedelta(minutes=10)
@@ -55,6 +56,9 @@ def signup():
     email = request.form.get("email")
     password = request.form.get("password")
 
+    if not (first and last and user and email and password):
+            return jsonify({'error': 'All form fields are required'}), 400
+    
     if len(password) < 4 or len(password) > 255:
         msg = 'Password needs to be between 4 and 255 characters long.'
         return jsonify({'error': msg})

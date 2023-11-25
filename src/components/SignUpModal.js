@@ -9,35 +9,43 @@ const SignUpModal = ({ open, onClose, onSignUp }) => {
   const [password, setPassword] = useState('');
 
   const handleSignUp = async () => {
-    // Validate input fields if needed
-    // You can add additional validation logic here
-
+    const signUpData = {
+      first_name: firstName,
+      last_name: lastName,
+      user_name: userName,
+      email,
+      password,
+    };
+  
     try {
-      // Change api-url to actual Flask API url
-
-      // In your Flask application, you might need to add the flask-cors extension and use it to enable CORS. Install it using:
-      // pip install flask-cors
-      // in Flask app import:
-      // from flask_cors import CORS
-   
-      const response = await axios.post('http://your-api-url/signup', {
-        first_name: firstName,
-        last_name: lastName,
-        user_name: userName,
-        email,
-        password,
+      const response = await fetch('http://127.0.0.1:5000/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add any additional headers if needed, e.g., authorization token
+        },
+        body: JSON.stringify(signUpData),
       });
-
-      // Handle the response, e.g., show success message
-      console.log(response.data.message);
+  
+      // Check if the response status is in the 2xx range
+      if (response.ok) {
+        const responseData = await response.json();
+        // Handle success, e.g., show success message
+        console.log(responseData.message);
+      } else {
+        // Handle error, e.g., show error message
+        const errorData = await response.json();
+        console.error(errorData.error);
+      }
     } catch (error) {
-      // Handle error, e.g., show error message
-      console.error(error.response.data.error);
+      // Handle network or other unexpected errors
+      console.error('An error occurred:', error.message);
     }
-
+  
     // Close the modal after sign-up (you can modify this logic based on your needs)
     onClose();
   };
+  
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
