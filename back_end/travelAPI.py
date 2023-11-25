@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify, g, session ,render_template
 from datetime import timedelta
-import datetime
-import sqlite3
 from functools import wraps
 from email_validator import validate_email, EmailNotValidError
-from flask_cors import CORS
+import datetime
+import sqlite3
+import jwt
+
 app = Flask(__name__)
-CORS(app)
 app.config['SECRET_KEY'] = 'Sa_sa'
 
 app.permanent_session_lifetime = timedelta(minutes=10)
@@ -39,13 +39,74 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            print(data)
+            print(data) # What's data?
         except Exception as e:
             print(str(e))
             return jsonify({'message' : 'Token is invalid !!'}), 401
 
         return f(*args, **kwargs)
     return decorated
+
+@app.route("/login", methods=["POST"])
+def login():
+
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        msg = ''
+
+        username = request.form.get('user_name')
+        password = request.form.get('password')
+        
+
+        # # COUNT() means that it returns the number of rows that matches a specified criterion
+        # getCountByUsernameAndPassword = '''SELECT COUNT(*) FROM account WHERE user_name = ? AND password = ?'''
+        # cursor.execute(getCountByUsernameAndPassword, [username, password])
+        
+        getUserIdByUsernameAndPassword = '''SELECT id FROM account WHERE user_name = ? AND password = ?'''
+        cursor.execute(getUserIdByUsernameAndPassword, [username, password])
+        
+        #print("Did execute")
+        
+        user_id = cursor.fetchone()
+
+        #print("Did fetchone")
+
+        if not user_id:
+
+            msg = 'Account does not exist.'
+            return jsonify(msg=msg)
+        #print("count is 1")
+
+        #token is like a hall pass that only works for a limited time
+        token = jwt.encode({'user': username, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10)}, app.config['SECRET_KEY'], algorithm="HS256")
+
+        #token = jwt.encode({a:"b"}, app.config['SECRET_KEY'], algorithm="HS256")
+        
+
+
+        session['Authorization'] = token
+        
+        # sessions carry data over the website
+        session['loggedin'] = True
+
+        session['username'] = username
+        
+        session['userID'] = user_id
+        
+        msg = 'Authentication successful'
+        return jsonify(msg)
+    
+    except Exception as e:
+        
+        #make sure to include this when developing an api or web server when wanting to check for errors without users
+        #seeing it
+        #print(str(e))
+        #msg = 'Account does not exist.'
+        
+        msg = str(e)
+
+        return jsonify(msg=msg)
 
 
 @app.route("/signup", methods=["POST"])
@@ -54,15 +115,7 @@ def signup():
     last = request.form.get("last_name")
     user = request.form.get("user_name")
     email = request.form.get("email")
-    password = request.form.get("passw")
-
-    # if not (first and last and user and email and password):
-    #         return jsonify({'error': 'All form fields are required'}), 400
-    print(first)
-    print(last)
-    print(user)
-    print(email)
-    print(password)
+    password = request.form.get("password")
 
     if len(password) < 4 or len(password) > 255:
         msg = 'Password needs to be between 4 and 255 characters long.'
@@ -166,11 +219,24 @@ def add_favorite():
     state = request.form.get("state")
     zip = request.form.get("zip")
     
+    
+    
+    # Get login user id
+    if 'username' in session:
+        username = session['username']
+        
+        try:
+            # Get user if by username from db
+            user_id = cursor.execute('SELECT id FROM account WHERE username = ?', (username))
+            db.commit()
+        except sqlite3.Error as e:
+            return jsonify({'message': 'user not found'}), 404
+    
+    
 
     # Validate input
     if not name or not street or not city or not state or not zip:
         return jsonify({'error': 'Missing name or address'}), 400
-
 
 
     db = get_db()
@@ -191,7 +257,8 @@ def add_favorite():
     
     # Insert into favorite
     try:
-        cursor.execute('INSERT INTO favorites (name, addressID) VALUES (?, ?)', (name, address_id))
+        # add UserId in the favorite tabe
+        cursor.execute('INSERT INTO favorites (name, addressID, userID) VALUES (?, ?, ?)', (name, address_id, user_id))
         db.commit()
     except sqlite3.Error as e:
         db.rollback()
@@ -203,7 +270,10 @@ def add_favorite():
 def get_favorite():
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT name, street, city, state, zip FROM favorites, address WHERE favorites.addressID = address.id")
+    
+    user_id = session['userID']
+    
+    cursor.execute("SELECT name, street, city, state, zip FROM favorites, address WHERE userID = ? AND favorites.addressID = address.id", (user_id))
     favorites = cursor.fetchall()
     return jsonify(favorites), 200
 
@@ -212,6 +282,7 @@ def delete_favorite():
     db = get_db()
     cursor = db.cursor()
     name = request.form['name']
+    # Delete favorite by UserId
 
     try:
         query = 'DELETE FROM favorites WHERE name = (?)'
