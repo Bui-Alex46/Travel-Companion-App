@@ -34,9 +34,8 @@ const Map = ({ setCoordinates, setBounds, coordinates, places }) => {
               lng={Number(place.longitude)}
               key={i}
             >
-              {console.log('Place:', place)}
-              {console.log('isDesktop:', isDesktop)}
-  
+              {/* {console.log('Place:', place)}
+              {console.log('isDesktop:', isDesktop)} */}
               {!isDesktop ? (
                 <LocationOnOutlinedIcon color="primary" fontSize="large" style = {{ fontSize:40, color: 'red', zInedex : 1000}}/>
               ) : (

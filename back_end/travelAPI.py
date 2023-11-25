@@ -54,11 +54,16 @@ def signup():
     last = request.form.get("last_name")
     user = request.form.get("user_name")
     email = request.form.get("email")
-    password = request.form.get("password")
+    password = request.form.get("passw")
 
-    if not (first and last and user and email and password):
-            return jsonify({'error': 'All form fields are required'}), 400
-    
+    # if not (first and last and user and email and password):
+    #         return jsonify({'error': 'All form fields are required'}), 400
+    print(first)
+    print(last)
+    print(user)
+    print(email)
+    print(password)
+
     if len(password) < 4 or len(password) > 255:
         msg = 'Password needs to be between 4 and 255 characters long.'
         return jsonify({'error': msg})
@@ -102,7 +107,7 @@ def signup():
     db = get_db()
     cursor = db.cursor()
 
-    getCountByUsername = '''SELECT COUNT(*) FROM account WHERE username = %s'''
+    getCountByUsername = '''SELECT COUNT(*) FROM account WHERE user_name = ?'''
     cursor.execute(getCountByUsername,[user])
     countOfUsername = cursor.fetchone()
 

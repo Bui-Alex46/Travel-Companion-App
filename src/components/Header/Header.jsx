@@ -43,7 +43,7 @@ const Heaeder = () => {
                 <Button variant="contained" color="primary" onClick={openSignInModal}>
                      Sign In
                 </Button>
-                <SignInModal open={isSignUpModalOpen} onClose={closeSignInModal} />
+                <SignInModal open={isSignInModalOpen} onClose={closeSignInModal} />
                 
                 <Button variant="contained" color="primary" onClick={openSignUpModal}>
                      Sign Up

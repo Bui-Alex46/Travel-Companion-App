@@ -9,13 +9,14 @@ const SignUpModal = ({ open, onClose, onSignUp }) => {
   const [password, setPassword] = useState('');
 
   const handleSignUp = async () => {
-    const signUpData = {
-      first_name: firstName,
-      last_name: lastName,
-      user_name: userName,
-      email,
-      password,
-    };
+   
+    var formData = new FormData();
+    formData.append('first_name', firstName);
+    formData.append('last_name', lastName);
+    formData.append('user_name', userName);
+    formData.append('email', email);
+    formData.append('passw', password);
+   
   
     try {
       const response = await fetch('http://127.0.0.1:5000/signup', {
@@ -24,19 +25,9 @@ const SignUpModal = ({ open, onClose, onSignUp }) => {
           'Content-Type': 'application/json',
           // Add any additional headers if needed, e.g., authorization token
         },
-        body: JSON.stringify(signUpData),
+        body: formData
       });
   
-      // Check if the response status is in the 2xx range
-      if (response.ok) {
-        const responseData = await response.json();
-        // Handle success, e.g., show success message
-        console.log(responseData.message);
-      } else {
-        // Handle error, e.g., show error message
-        const errorData = await response.json();
-        console.error(errorData.error);
-      }
     } catch (error) {
       // Handle network or other unexpected errors
       console.error('An error occurred:', error.message);
