@@ -8,8 +8,8 @@ c = conn.cursor()
 create_favorites = '''CREATE TABLE IF NOT EXISTS favorites (
             id          INTEGER     NOT NULL PRIMARY KEY AUTOINCREMENT,
             name        TEXT        NOT NULL,
-            addressID   INTEGER     NOT NULL UNIQUE,
-            userID      INTEGER     NOT NULL UNIQUE,
+            addressID   INTEGER     NOT NULL,
+            userID      INTEGER     NOT NULL,
             FOREIGN KEY(addressID) REFERENCES address(id) ON DELETE CASCADE,
             FOREIGN KEY(userID) REFERENCES account(id)  ON DELETE CASCADE
     );'''

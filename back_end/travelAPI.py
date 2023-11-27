@@ -5,9 +5,11 @@ from email_validator import validate_email, EmailNotValidError
 import datetime
 import sqlite3
 import jwt
-
+from flask_cors import CORS  # Import the CORS module
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Sa_sa'
+CORS(app)
+
 
 app.permanent_session_lifetime = timedelta(minutes=10)
 
@@ -40,6 +42,8 @@ def token_required(f):
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
             print(data) # What's data?
+            if 'userID' not in session:
+                return jsonify({'message': 'User ID not found in session.'}), 401
         except Exception as e:
             print(str(e))
             return jsonify({'message' : 'Token is invalid !!'}), 401
@@ -62,13 +66,17 @@ def login():
         # # COUNT() means that it returns the number of rows that matches a specified criterion
         # getCountByUsernameAndPassword = '''SELECT COUNT(*) FROM account WHERE user_name = ? AND password = ?'''
         # cursor.execute(getCountByUsernameAndPassword, [username, password])
-        
+        print('Received form data:', request.form)
+        print('Username:', request.form.get('user_name'))
+        print('Password:', request.form.get('password'))
+
         getUserIdByUsernameAndPassword = '''SELECT id FROM account WHERE user_name = ? AND password = ?'''
         cursor.execute(getUserIdByUsernameAndPassword, [username, password])
         
         #print("Did execute")
         
         user_id = cursor.fetchone()
+        print('User ID:', user_id[0])
 
         #print("Did fetchone")
 
@@ -92,10 +100,11 @@ def login():
 
         session['username'] = username
         
-        session['userID'] = user_id
+        session['userID'] = user_id[0]
         
+    
         msg = 'Authentication successful'
-        return jsonify(msg)
+        return jsonify({'message': msg, 'userID': user_id[0], 'token': token})  # Include user ID in the response
     
     except Exception as e:
         
@@ -115,8 +124,15 @@ def signup():
     last = request.form.get("last_name")
     user = request.form.get("user_name")
     email = request.form.get("email")
-    password = request.form.get("password")
+    password = request.form.get("passw")
 
+    print(first)
+    print(last)
+    print(user)
+    print(email)
+    print(password)
+
+   
     if len(password) < 4 or len(password) > 255:
         msg = 'Password needs to be between 4 and 255 characters long.'
         return jsonify({'error': msg})
@@ -178,7 +194,8 @@ def signup():
         db.rollback()
         return jsonify({'error': str(e)}), 500
     
-    return jsonify({'Account Successfully Created'}), 201
+    return jsonify({'message': 'Account Successfully Created'}), 201
+
 
 
 @app.route("/")
@@ -212,66 +229,40 @@ def hello_world():
 
 @app.route("/favorite", methods=['POST'])
 def add_favorite():
-    #data = request.get_json()
     name = request.form.get("name")
-    street = request.form.get("street")
-    city = request.form.get("city")
-    state = request.form.get("state")
-    zip = request.form.get("zip")
+    address_id = request.form.get("address_id")
+    user_id = request.form.get("user_id")
     
-    
-    
-    # Get login user id
-    if 'username' in session:
-        username = session['username']
-        
-        try:
-            # Get user if by username from db
-            user_id = cursor.execute('SELECT id FROM account WHERE username = ?', (username))
-            db.commit()
-        except sqlite3.Error as e:
-            return jsonify({'message': 'user not found'}), 404
-    
-    
+
+    print(f"Received data - Name: {name}, Address ID: {address_id}, User ID: {user_id}")
 
     # Validate input
-    if not name or not street or not city or not state or not zip:
+    if not name or not address_id or not user_id:
         return jsonify({'error': 'Missing name or address'}), 400
-
 
     db = get_db()
     cursor = db.cursor()
     
-   
-    # Insert into address
-    try:
-        cursor.execute('INSERT INTO address (street, city, state, zip) VALUES (?, ?, ?, ?)', (street, city, state, zip))
-        db.commit()
-    except sqlite3.Error as e:
-        db.rollback()
-        return jsonify({'error': str(e)}), 500
     
-    # Get the address id we just create
-    cursor.execute('''SELECT id FROM address WHERE street= (?) AND city = (?) AND state = (?) AND zip = (?)''', (street, city, state, zip))
-    address_id = cursor.fetchone()[0]
-    
-    # Insert into favorite
+    # Insert into favorites
     try:
-        # add UserId in the favorite tabe
+        # Since there's no user session check, you might want to handle user identification differently
         cursor.execute('INSERT INTO favorites (name, addressID, userID) VALUES (?, ?, ?)', (name, address_id, user_id))
         db.commit()
     except sqlite3.Error as e:
         db.rollback()
+        print(f"SQLite error: {e}")
         return jsonify({'error': str(e)}), 500
 
     return jsonify({'message': 'Place added successfully!'}), 201
+
 
 @app.route('/favorite', methods=['GET'])
 def get_favorite():
     db = get_db()
     cursor = db.cursor()
     
-    user_id = session['userID']
+    user_id = session.get['userID']
     
     cursor.execute("SELECT name, street, city, state, zip FROM favorites, address WHERE userID = ? AND favorites.addressID = address.id", (user_id))
     favorites = cursor.fetchall()
@@ -295,7 +286,17 @@ def delete_favorite():
 
     return jsonify({'message': 'Place deleted successfully!'}), 201
 
-
+@app.route("/get_user_id", methods=["GET"])
+@token_required  # Assuming you want to ensure the request has a valid token
+def get_user_id():
+    try:
+        user_id = session.get('userID')
+        if user_id is not None:
+            return jsonify({'id': user_id}), 200
+        else:
+            return jsonify({'message': 'User ID not found in session.'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # @app.route('/favorite', methods = ['GET', 'POST', 'DELETE'])
 # def favorite():

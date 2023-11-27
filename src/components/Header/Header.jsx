@@ -11,6 +11,7 @@ const Heaeder = () => {
     const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
     const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
+    const [userId, setUserId] = useState(null);
    
     const openSignUpModal = () => {
         setIsSignUpModalOpen(true);
@@ -43,7 +44,7 @@ const Heaeder = () => {
                 <Button variant="contained" color="primary" onClick={openSignInModal}>
                      Sign In
                 </Button>
-                <SignInModal open={isSignInModalOpen} onClose={closeSignInModal} />
+                <SignInModal open={isSignInModalOpen} onClose={closeSignInModal} setUserId={setUserId} />
                 
                 <Button variant="contained" color="primary" onClick={openSignUpModal}>
                      Sign Up

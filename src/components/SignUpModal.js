@@ -16,18 +16,23 @@ const SignUpModal = ({ open, onClose, onSignUp }) => {
     formData.append('user_name', userName);
     formData.append('email', email);
     formData.append('passw', password);
+    
    
   
     try {
       const response = await fetch('http://127.0.0.1:5000/signup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any additional headers if needed, e.g., authorization token
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        //   // Add any additional headers if needed, e.g., authorization token
+        // },
         body: formData
       });
-  
+      console.log(firstName)
+      console.log(lastName)
+      console.log(userName)
+      console.log(email)
+      console.log(password)
     } catch (error) {
       // Handle network or other unexpected errors
       console.error('An error occurred:', error.message);
