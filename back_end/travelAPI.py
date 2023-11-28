@@ -256,30 +256,14 @@ def add_favorite():
     return jsonify({'message': 'Place added successfully!'}), 201
 
 
-@app.route('/favorite', methods=['GET', 'OPTIONS'])
-def get_favorite():
-    print('GET /favorite route triggered')
-    # Explicitly handle CORS for OPTIONS requests
-    if request.method == 'OPTIONS':
-        headers = {
-            'Access-Control-Allow-Origin': 'http://localhost:3000',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Methods': 'GET',
-        }
-        return '', 204, headers
-
-    # Your existing route logic
-    db = get_db()
-    cursor = db.cursor()
+@app.route('/favorite/<int:user_id>', methods=['GET'])
+def get_favorite(user_id):
+    print(f'GET /favorite route triggered for user ID {user_id}')
     
-
-    # Assuming you have the user's ID in the session
-    user_id = session.get('userID')
-    print(f"User ID: {user_id}")
-    if user_id is None:
-        return jsonify({'error': 'User not authenticated'}), 401
-
     try:
+        db = get_db()
+        cursor = db.cursor()
+
         # Fetching data directly from the favorites table based on the userID
         cursor.execute("""
             SELECT name
@@ -297,7 +281,6 @@ def get_favorite():
 
     finally:
         cursor.close()
-
 @app.route('/delete', methods=['DELETE'])
 def delete_favorite():
     db = get_db()
