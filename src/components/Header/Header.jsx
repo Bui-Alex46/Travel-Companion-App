@@ -5,13 +5,14 @@ import SearchIcon from '@material-ui/icons/Search';
 import SignInModal from '../SignInModal'
 import SignUpModal from '../SignUpModal'
 import useStyles from './styles';
-import Favorites from '../Favorites';
+
 const Heaeder = () => {
     const classes = useStyles();
     const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-    const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
     const [userId, setUserId] = useState(null);
+
+
    
     const openSignUpModal = () => {
         setIsSignUpModalOpen(true);
@@ -26,13 +27,7 @@ const Heaeder = () => {
         setIsSignInModalOpen(false);
       }
 
-      const openFavoritesModal = () => {
-        setIsFavoritesModalOpen(true);
-      };
-    
-      const closeFavoritesModal = () => {
-        setIsFavoritesModalOpen(false);
-      };
+
     return(
         <AppBar position = "static">
             
@@ -52,7 +47,7 @@ const Heaeder = () => {
                 <SignUpModal open={isSignUpModalOpen} onClose={closeSignUpModal} />
                 
                 
-                <Favorites open={isFavoritesModalOpen} onClose={closeFavoritesModal} />
+                
                 
                 
                 <Box display = "flex">

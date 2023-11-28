@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, g, session ,render_template
+from flask import Flask, request, jsonify, make_response, g, session ,render_template
 from datetime import timedelta
 from functools import wraps
 from email_validator import validate_email, EmailNotValidError
@@ -9,7 +9,6 @@ from flask_cors import CORS  # Import the CORS module
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Sa_sa'
 CORS(app)
-
 
 app.permanent_session_lifetime = timedelta(minutes=10)
 
@@ -257,16 +256,47 @@ def add_favorite():
     return jsonify({'message': 'Place added successfully!'}), 201
 
 
-@app.route('/favorite', methods=['GET'])
+@app.route('/favorite', methods=['GET', 'OPTIONS'])
 def get_favorite():
+    print('GET /favorite route triggered')
+    # Explicitly handle CORS for OPTIONS requests
+    if request.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': 'http://localhost:3000',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'GET',
+        }
+        return '', 204, headers
+
+    # Your existing route logic
     db = get_db()
     cursor = db.cursor()
     
-    user_id = session.get['userID']
-    
-    cursor.execute("SELECT name, street, city, state, zip FROM favorites, address WHERE userID = ? AND favorites.addressID = address.id", (user_id))
-    favorites = cursor.fetchall()
-    return jsonify(favorites), 200
+
+    # Assuming you have the user's ID in the session
+    user_id = session.get('userID')
+    print(f"User ID: {user_id}")
+    if user_id is None:
+        return jsonify({'error': 'User not authenticated'}), 401
+
+    try:
+        # Fetching data directly from the favorites table based on the userID
+        cursor.execute("""
+            SELECT name
+            FROM favorites
+            WHERE userID = ?
+        """, (user_id,))
+
+        favorites = cursor.fetchall()
+
+        return jsonify(favorites), 200
+
+    except sqlite3.Error as e:
+        print(f"SQLite error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        cursor.close()
 
 @app.route('/delete', methods=['DELETE'])
 def delete_favorite():
