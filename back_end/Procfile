@@ -1,1 +1,1 @@
-web: gunicorn app:travelAPI.py
+web: gunicorn travelAPI:app
