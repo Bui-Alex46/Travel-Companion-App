@@ -5,9 +5,17 @@ import PhoneIcon from '@material-ui/icons/Phone';
 import Rating from '@material-ui/lab/Rating';
 
 import useStyles from './styles';
-const PlaceDetails = ({place}) => {
+const PlaceDetails = ({place, selected, refProp}) => {
     const classes = useStyles();
     const [favorite, setFavorite] = useState(false);
+
+    if(selected) refProp?.current?.scrollIntoView({ behavior: "smooth", block: "start"})
+
+
+
+
+
+
     const addToFavorites = async () => {
         const apiUrl = 'http://127.0.0.1:5000/favorite';
         const token = localStorage.getItem('token');
@@ -54,6 +62,10 @@ const PlaceDetails = ({place}) => {
         />
         <CardContent>
             <Typography gutterBottom variant = "h5">{place.name}</Typography>
+            <Box display = "flex" justifyContent = "space-between">
+                <Rating  value = {Number(place.rating)} readOnly/>
+                <Typography gutterBottom variant = "subtitle1">out of {place.num_reviews} reviews</Typography>
+            </Box>
             <Box display = "flex" justifyContent = "space-between">
                 <Typography variant = "subtitle1">Price</Typography>
                 <Typography gutterBottom variant = "subtitle1">{place.price_level}</Typography>
