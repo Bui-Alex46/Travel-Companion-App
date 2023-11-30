@@ -15,9 +15,9 @@ The Travel Advisor Web Application is an interactive platform that provides user
 ## Technologies Used
 **Frontend**:
 
-* React: A JavaScript library for building user interfaces.
-* Material-UI: A React UI framework for designing responsive and visually appealing components.
-* Google Map React: A library for embedding Google Maps into React applications.
+* **React**: A JavaScript library for building user interfaces.
+* **Material-UI**: A React UI framework for designing responsive and visually appealing components.
+* **Google Map React**: A library for embedding Google Maps into React applications.
 
 **Backend**:
 
