@@ -6,14 +6,21 @@ import SignInModal from '../SignInModal'
 import SignUpModal from '../SignUpModal'
 import useStyles from './styles';
 import Favorites from '../Favorites';
-const Heaeder = () => {
+const Heaeder = ({setCoordinates}) => {
     const classes = useStyles();
     const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
     const [userId, setUserId] = useState(null);
     const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
-
+    const [autocomplete, setAutocomplete] = useState(null)
+    
+    const onLoad = (autoC) => setAutocomplete(autoC)
    
+    const onPlaceChanged = () => {
+      const lat = autocomplete.getPlace().geometry.location.lat();
+      const lng =autocomplete.getPlace().geometry.location.lng();
+      setCoordinates({lat,lng})
+    }
     const openSignUpModal = () => {
         setIsSignUpModalOpen(true);
       }
@@ -63,14 +70,14 @@ const Heaeder = () => {
                         Explore New places
                     </Typography>
                    
-                    {/* <Autocomplete> */}
+                    <Autocomplete onLoad = {onLoad} onPlaceChanged = {onPlaceChanged}> 
                         <div className = {classes.search}>
                             <div className={classes.searchIcon}>
                                 <SearchIcon/>
                             </div>
                             <InputBase placeholder = "Search..." classes = {{root: classes.inputRoot, input: classes.inputInput}}/>
                         </div>
-                    {/* </Autocomplete> */}
+                     </Autocomplete>
                 </Box>
             </Toolbar>
         </AppBar>

@@ -3,11 +3,10 @@ import  {CircularProgress, Grid, Typography, InputLabel, MenuItem, FormControl ,
 import useStyles from './styles';
 import PlaceDetails from '../PlaceDetails/PlaceDetails';
 import { ContactSupportOutlined, Refresh } from '@material-ui/icons';
-const List = ({places, childClicked, isLoading}) => {
+const List = ({places, childClicked, isLoading, type, setType, rating, setRating}) => {
 
     const classes = useStyles();
-    const [type, setType] = useState('restaurants'); 
-    const [rating, setRating] = useState('');
+
     const [elRefs, setElRefs] = useState([]);
     useEffect(() => {
         const refs = Array(places?.length).fill().map((_, i) => elRefs[i] || createRef());
@@ -17,7 +16,7 @@ const List = ({places, childClicked, isLoading}) => {
     return(
         <div className={classes.container}>
             {/* List Search */}
-            <Typography variant = "h4"> Resraurants, Hotels, & Attractions around you </Typography>
+            <Typography variant = "h4"> Restaurants, Hotels, & Attractions around you </Typography>
             {isLoading ? (
                 <div className = {classes.loading}>
                     <CircularProgress size = "5rem"/>
@@ -30,7 +29,7 @@ const List = ({places, childClicked, isLoading}) => {
                 <Select value = {type} onChange = {(e) => setType(e.target.value)}>
                     <MenuItem value = "restaurants">Restaurants</MenuItem>
                     <MenuItem value = "hotels">Hotels</MenuItem> 
-                    <MenuItem value = "attractions">Sttractions</MenuItem>  
+                    <MenuItem value = "attractions">Attractions</MenuItem>  
                     </Select>
             </FormControl>
             {/* Rating Section */}
