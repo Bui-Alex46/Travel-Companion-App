@@ -23,9 +23,9 @@ The Travel Advisor Web Application is an interactive platform that provides user
 
 * **Flask**: A micro web framework for building web applications with Python.
 * **SQLite Database**: A lightweight, serverless database for storing user information, favorited places, and account details.
-# External APIs:
+## External APIs:
 
 **RapidAPI**: Used to gather travel advisory details and enrich the user experience with up-to-date information.
 
-# Link to web-app demo:
+## Link to web-app demo:
 [Travel Advisor App](https://travel-advisor-team3.netlify.app/)
